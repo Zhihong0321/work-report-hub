@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report.title }} | Work Reports{% endblock %}
+
+{% block content %}
+<section class="card detail-card">
+  <div class="detail-header">
+    <div>
+      <p class="section-label">{{ report.project_name }} / {{ report.repo_name }}</p>
+      <h2>{{ report.title }}</h2>
+    </div>
+    <a class="secondary-button link-button" href="{{ url_for('dashboard') }}">Back</a>
+  </div>
+
+  <div class="meta-grid">
+    <div>
+      <span class="meta-label">Report date</span>
+      <strong>{{ report.report_date.strftime("%Y-%m-%d") }}</strong>
+    </div>
+    <div>
+      <span class="meta-label">Saved at</span>
+      <strong>{{ report.created_at.strftime("%Y-%m-%d %H:%M UTC") }}</strong>
+    </div>
+    <div>
+      <span class="meta-label">Source</span>
+      <strong>{{ report.source or "Not provided" }}</strong>
+    </div>
+  </div>
+
+  <div class="detail-body">{{ report.detail }}</div>
+</section>
+{% endblock %}

@@ -1,0 +1,246 @@
+:root {
+  --bg: #f4efe7;
+  --panel: rgba(255, 252, 247, 0.88);
+  --panel-strong: #fffaf3;
+  --text: #1d1b19;
+  --muted: #6c6258;
+  --line: rgba(42, 37, 31, 0.12);
+  --accent: #bf5b2c;
+  --accent-deep: #913b16;
+  --shadow: 0 18px 60px rgba(62, 43, 22, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(191, 91, 44, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(46, 91, 132, 0.12), transparent 24%),
+    linear-gradient(180deg, #f9f4ec 0%, var(--bg) 100%);
+}
+
+.page-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hero h1,
+.card h2 {
+  margin: 0;
+  line-height: 1.05;
+}
+
+.hero h1 {
+  max-width: 700px;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  letter-spacing: -0.04em;
+}
+
+.eyebrow,
+.section-label,
+.meta-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.card,
+.table-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.card {
+  border-radius: 28px;
+  padding: 24px;
+}
+
+.controls-card,
+.login-card {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.table-card {
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 24px;
+}
+
+.table-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.table-row {
+  border-top: 1px solid var(--line);
+}
+
+.table-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.primary-text,
+.muted-text {
+  margin: 0;
+}
+
+.muted-text {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.search-form,
+.login-form {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+label {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font: inherit;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+button,
+.link-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  color: #fffaf5;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+}
+
+.secondary-button {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid var(--line);
+}
+
+.detail-card {
+  display: grid;
+  gap: 20px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.meta-grid > div {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid var(--line);
+}
+
+.detail-body {
+  padding: 24px;
+  border-radius: 24px;
+  white-space: pre-wrap;
+  line-height: 1.65;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+}
+
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.flash-stack {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.flash-message {
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: #fff1ea;
+  border: 1px solid rgba(191, 91, 44, 0.24);
+}
+
+code {
+  font-family: "Courier New", monospace;
+}
+
+@media (max-width: 860px) {
+  .controls-card,
+  .login-card,
+  .table-header,
+  .table-row,
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .detail-header {
+    flex-direction: column;
+  }
+
+  .table-header {
+    display: none;
+  }
+
+  .table-row {
+    padding: 20px;
+  }
+}

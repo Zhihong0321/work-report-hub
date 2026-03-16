@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Work Reports{% endblock %}
+
+{% block content %}
+<section class="card controls-card">
+  <div>
+    <p class="section-label">Overview</p>
+    <h2>{{ reports|length }} report{% if reports|length != 1 %}s{% endif %}</h2>
+    <p>Browse everything your agents have pushed across projects and devices.</p>
+  </div>
+
+  <form method="get" class="search-form">
+    <label for="q">Search</label>
+    <input id="q" name="q" type="text" value="{{ query }}" placeholder="Project, repo, or title">
+    <button type="submit">Filter</button>
+  </form>
+</section>
+
+<section class="table-card">
+  <div class="table-header">
+    <span>Project / Repo</span>
+    <span>Date</span>
+    <span>Title</span>
+    <span></span>
+  </div>
+
+  {% if reports %}
+    {% for report in reports %}
+    <article class="table-row">
+      <div>
+        <p class="primary-text">{{ report.project_name }}</p>
+        <p class="muted-text">{{ report.repo_name }}</p>
+      </div>
+      <div>{{ report.report_date.strftime("%Y-%m-%d") }}</div>
+      <div>{{ report.title }}</div>
+      <div>
+        <a class="link-button" href="{{ url_for('report_detail', report_id=report.id) }}">View</a>
+      </div>
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <p>No reports yet.</p>
+      <p>POST to <code>/api/reports</code> and they will appear here.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
