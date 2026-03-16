@@ -6,7 +6,7 @@ from functools import wraps
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 
 
 db = SQLAlchemy()
@@ -45,12 +45,26 @@ def normalize_database_url(raw_url: str) -> str:
     return raw_url
 
 
+def get_required_env(name: str) -> str:
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise RuntimeError(f"{name} is required.")
+    return value
+
+
+def check_database_connection() -> dict:
+    db.session.execute(text("SELECT 1"))
+    report_count = db.session.query(Report.id).count()
+    return {
+        "status": "ok",
+        "report_count": report_count,
+    }
+
+
 def build_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-me-before-production")
-    app.config["SQLALCHEMY_DATABASE_URI"] = normalize_database_url(
-        os.environ.get("DATABASE_URL", "sqlite:///reports.db")
-    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = normalize_database_url(get_required_env("DATABASE_URL"))
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["APP_API_KEY"] = os.environ.get("APP_API_KEY", "")
 
@@ -134,8 +148,38 @@ def register_routes(app: Flask) -> None:
     @app.route("/health")
     def health():
         if not get_api_key():
-            return jsonify({"status": "misconfigured", "message": "APP_API_KEY is not set"}), 500
-        return jsonify({"status": "ok"})
+            return jsonify(
+                {
+                    "status": "misconfigured",
+                    "checks": {
+                        "api_key": {"status": "error", "message": "APP_API_KEY is not set"},
+                        "database": {"status": "unknown"},
+                    },
+                }
+            ), 500
+
+        try:
+            database_check = check_database_connection()
+        except Exception as exc:
+            return jsonify(
+                {
+                    "status": "error",
+                    "checks": {
+                        "api_key": {"status": "ok"},
+                        "database": {"status": "error", "message": str(exc)},
+                    },
+                }
+            ), 500
+
+        return jsonify(
+            {
+                "status": "ok",
+                "checks": {
+                    "api_key": {"status": "ok"},
+                    "database": database_check,
+                },
+            }
+        )
 
     @app.route("/login", methods=["GET", "POST"])
     def login():

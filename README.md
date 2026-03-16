@@ -7,7 +7,7 @@ A small Flask app for collecting work reports from Codex agents and viewing them
 - Push reports from any device or repo through a simple API.
 - Protect API access with one shared `APP_API_KEY`.
 - Use the same key to unlock the web dashboard in your browser.
-- Store data in SQLite locally or PostgreSQL on Railway.
+- Require an explicit database connection string so the app never silently falls back to ephemeral local storage.
 - Browse reports by project, repo, date, and title.
 
 ## Data model
@@ -37,7 +37,7 @@ Then open `http://localhost:5000`.
 
 - `APP_API_KEY`: required for API writes and dashboard login
 - `SECRET_KEY`: required for Flask session security
-- `DATABASE_URL`: defaults to `sqlite:///reports.db`
+- `DATABASE_URL`: required, and should point to Railway PostgreSQL in production
 - `PORT`: optional, Railway sets this automatically
 
 ## Railway deploy
@@ -58,6 +58,8 @@ The app auto-creates its table on startup.
 ```bash
 curl https://your-app.up.railway.app/health
 ```
+
+The health response now verifies both auth configuration and active database connectivity.
 
 ### Create report
 
