@@ -37,6 +37,19 @@ class Report(db.Model):
         }
 
 
+class RepoMetadata(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    repo_name = db.Column(db.String(200), unique=True, nullable=False)
+    display_name = db.Column(db.String(200), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "repo_name": self.repo_name,
+            "display_name": self.display_name,
+        }
+
+
 def normalize_database_url(raw_url: str) -> str:
     if raw_url.startswith("postgresql://"):
         return raw_url.replace("postgresql://", "postgresql+psycopg://", 1)
@@ -201,12 +214,18 @@ def register_routes(app: Flask) -> None:
 
         # Get unique repos for the deletion dropdown
         unique_repos = sorted(list(set(r.repo_name for r in Report.query.all())))
+
+        # Get repo metadata for display names
+        repo_meta = RepoMetadata.query.all()
+        repo_names_map = {m.repo_name: m.display_name for m in repo_meta}
+
         return render_template(
             "dashboard.html",
             grouped_reports=grouped_reports,
             sorted_weeks=sorted_weeks,
             query=query,
             unique_repos=unique_repos,
+            repo_names_map=repo_names_map,
         )
 
     @app.route("/reports/<int:report_id>")
@@ -250,6 +269,26 @@ def register_routes(app: Flask) -> None:
         db.session.commit()
 
         flash(f"Deleted {num_deleted} report(s) from repository '{repo_name}'.")
+        return redirect(url_for("dashboard"))
+
+    @app.post("/update_repo_name")
+    def update_repo_name():
+        repo_name = request.form.get("repo_name")
+        display_name = request.form.get("display_name", "").strip()
+
+        if not repo_name or not display_name:
+            flash("Both repository name and official name are required.")
+            return redirect(url_for("dashboard"))
+
+        meta = RepoMetadata.query.filter_by(repo_name=repo_name).first()
+        if meta:
+            meta.display_name = display_name
+        else:
+            meta = RepoMetadata(repo_name=repo_name, display_name=display_name)
+            db.session.add(meta)
+
+        db.session.commit()
+        flash(f"Updated official name for '{repo_name}' to '{display_name}'.")
         return redirect(url_for("dashboard"))
 
 

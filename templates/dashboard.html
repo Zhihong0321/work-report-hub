@@ -17,21 +17,50 @@
   </form>
 </section>
 
-<section class="card controls-card">
-  <div style="flex-grow: 1;">
+<section class="card controls-card" style="display: flex; gap: 2rem; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 300px;">
     <p class="section-label">Repo Management</p>
-    <p>Bulk delete reports by repository name.</p>
+    <p>Bulk delete or rename repositories.</p>
+    
+    <div style="margin-top: 1rem;">
+      <form method="post" action="{{ url_for('delete_by_repo') }}" style="display: flex; flex-direction: column; gap: 0.5rem;" onsubmit="return confirm('Are you sure you want to delete ALL reports for this repo?');">
+        <label for="delete_repo_name">Delete All Reports</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <select id="delete_repo_name" name="repo_name" style="flex-grow: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white;" required>
+            <option value="">-- Choose a Repo --</option>
+            {% for repo in unique_repos %}
+            <option value="{{ repo }}">{{ repo }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="secondary-button" style="background-color: #e74c3c; border-color: #c0392b; color: white;">Delete</button>
+        </div>
+      </form>
+    </div>
   </div>
-  <form method="post" action="{{ url_for('delete_by_repo') }}" class="search-form" onsubmit="return confirm('Are you sure you want to delete ALL reports for this repo?');">
-    <label for="repo_name">Select Repo</label>
-    <select id="repo_name" name="repo_name" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white;">
-      <option value="">-- Choose a Repo --</option>
-      {% for repo in unique_repos %}
-      <option value="{{ repo }}">{{ repo }}</option>
-      {% endfor %}
-    </select>
-    <button type="submit" class="secondary-button" style="background-color: #e74c3c; border-color: #c0392b; color: white;">Delete All Reports</button>
-  </form>
+
+  <div style="flex: 1; min-width: 300px; border-left: 1px solid #eee; padding-left: 2rem;">
+    <p class="section-label">Official Naming</p>
+    <p>Set a readable name for a repository folder.</p>
+    
+    <form method="post" action="{{ url_for('update_repo_name') }}" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label for="rename_repo_name">Select Repo Folder</label>
+        <select id="rename_repo_name" name="repo_name" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white;" required>
+          <option value="">-- Choose a Repo --</option>
+          {% for repo in unique_repos %}
+          <option value="{{ repo }}">{{ repo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label for="display_name">Official Name</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="display_name" name="display_name" placeholder="e.g. My Awesome Project" style="flex-grow: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+          <button type="submit">Update</button>
+        </div>
+      </div>
+    </form>
+  </div>
 </section>
 
 <section class="table-card">
@@ -51,7 +80,13 @@
     <article class="table-row">
       <div>
         <p class="primary-text">{{ report.project_name }}</p>
-        <p class="muted-text">{{ report.repo_name }}</p>
+        <p class="muted-text">
+          {% if repo_names_map.get(report.repo_name) %}
+            <span title="{{ report.repo_name }}" style="color: #2c3e50; font-weight: 500;">{{ repo_names_map[report.repo_name] }}</span>
+          {% else %}
+            {{ report.repo_name }}
+          {% endif %}
+        </p>
       </div>
       <div>{{ report.report_date.strftime("%Y-%m-%d") }}</div>
       <div>{{ report.title }}</div>
