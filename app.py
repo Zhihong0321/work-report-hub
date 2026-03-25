@@ -1,6 +1,6 @@
 import os
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from dotenv import load_dotenv
@@ -105,16 +105,6 @@ def require_api_key(view_func):
     return wrapped
 
 
-def require_dashboard_login(view_func):
-    @wraps(view_func)
-    def wrapped(*args, **kwargs):
-        if session.get("dashboard_authenticated"):
-            return view_func(*args, **kwargs)
-        return redirect(url_for("login", next=request.path))
-
-    return wrapped
-
-
 def parse_report_date(value: str | None):
     if not value:
         return datetime.utcnow().date()
@@ -181,29 +171,7 @@ def register_routes(app: Flask) -> None:
             }
         )
 
-    @app.route("/login", methods=["GET", "POST"])
-    def login():
-        expected_key = get_api_key()
-        if not expected_key:
-            abort(500, description="APP_API_KEY is not configured.")
-
-        next_path = request.args.get("next") or url_for("dashboard")
-        if request.method == "POST":
-            submitted_key = request.form.get("api_key", "")
-            if secrets.compare_digest(submitted_key, expected_key):
-                session["dashboard_authenticated"] = True
-                return redirect(next_path)
-            flash("Invalid API key.")
-
-        return render_template("login.html")
-
-    @app.post("/logout")
-    def logout():
-        session.clear()
-        return redirect(url_for("login"))
-
     @app.route("/")
-    @require_dashboard_login
     def dashboard():
         query = request.args.get("q", "").strip()
         reports_query = Report.query
@@ -218,10 +186,30 @@ def register_routes(app: Flask) -> None:
             )
 
         reports = reports_query.order_by(Report.report_date.desc(), Report.created_at.desc()).all()
-        return render_template("dashboard.html", reports=reports, query=query)
+
+        # Group reports by week (Monday to Sunday)
+        grouped_reports = {}
+        for report in reports:
+            # report_date.weekday() is 0 for Monday, 6 for Sunday
+            week_start = report.report_date - timedelta(days=report.report_date.weekday())
+            if week_start not in grouped_reports:
+                grouped_reports[week_start] = []
+            grouped_reports[week_start].append(report)
+
+        # Sort weeks descending
+        sorted_weeks = sorted(grouped_reports.keys(), reverse=True)
+
+        # Get unique repos for the deletion dropdown
+        unique_repos = sorted(list(set(r.repo_name for r in Report.query.all())))
+        return render_template(
+            "dashboard.html",
+            grouped_reports=grouped_reports,
+            sorted_weeks=sorted_weeks,
+            query=query,
+            unique_repos=unique_repos,
+        )
 
     @app.route("/reports/<int:report_id>")
-    @require_dashboard_login
     def report_detail(report_id: int):
         report = Report.query.get_or_404(report_id)
         return render_template("report_detail.html", report=report)
@@ -250,6 +238,19 @@ def register_routes(app: Flask) -> None:
         db.session.add(report)
         db.session.commit()
         return jsonify({"message": "Report stored.", "report": report.to_dict()}), 201
+
+    @app.post("/delete_by_repo")
+    def delete_by_repo():
+        repo_name = request.form.get("repo_name")
+        if not repo_name:
+            flash("Repository name is required.")
+            return redirect(url_for("dashboard"))
+
+        num_deleted = Report.query.filter_by(repo_name=repo_name).delete()
+        db.session.commit()
+
+        flash(f"Deleted {num_deleted} report(s) from repository '{repo_name}'.")
+        return redirect(url_for("dashboard"))
 
 
 app = build_app()

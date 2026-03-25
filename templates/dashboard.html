@@ -17,6 +17,23 @@
   </form>
 </section>
 
+<section class="card controls-card">
+  <div style="flex-grow: 1;">
+    <p class="section-label">Repo Management</p>
+    <p>Bulk delete reports by repository name.</p>
+  </div>
+  <form method="post" action="{{ url_for('delete_by_repo') }}" class="search-form" onsubmit="return confirm('Are you sure you want to delete ALL reports for this repo?');">
+    <label for="repo_name">Select Repo</label>
+    <select id="repo_name" name="repo_name" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white;">
+      <option value="">-- Choose a Repo --</option>
+      {% for repo in unique_repos %}
+      <option value="{{ repo }}">{{ repo }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="secondary-button" style="background-color: #e74c3c; border-color: #c0392b; color: white;">Delete All Reports</button>
+  </form>
+</section>
+
 <section class="table-card">
   <div class="table-header">
     <span>Project / Repo</span>
@@ -25,8 +42,12 @@
     <span></span>
   </div>
 
-  {% if reports %}
-    {% for report in reports %}
+  {% if sorted_weeks %}
+    {% for week_start in sorted_weeks %}
+    <div class="week-header" style="background: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #eee; font-weight: 600; color: #555;">
+      Week of {{ week_start.strftime("%Y-%m-%d") }} (Mon)
+    </div>
+    {% for report in grouped_reports[week_start] %}
     <article class="table-row">
       <div>
         <p class="primary-text">{{ report.project_name }}</p>
@@ -38,6 +59,7 @@
         <a class="link-button" href="{{ url_for('report_detail', report_id=report.id) }}">View</a>
       </div>
     </article>
+    {% endfor %}
     {% endfor %}
   {% else %}
     <div class="empty-state">

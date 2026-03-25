@@ -13,11 +13,6 @@
           <p class="eyebrow">Railway-ready work report hub</p>
           <h1>One place for all of your Codex work reports.</h1>
         </div>
-        {% if session.get("dashboard_authenticated") %}
-        <form method="post" action="{{ url_for('logout') }}">
-          <button class="secondary-button" type="submit">Log out</button>
-        </form>
-        {% endif %}
       </header>
 
       {% with messages = get_flashed_messages() %}
